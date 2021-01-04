@@ -1,6 +1,7 @@
 import pytorch_lightning as pl
 from torch.utils.data import DataLoader
 import argparse
+from dataset import InMemoryTrainDataset, TrainDataset, ToTensor
 
 class DataModule(pl.LightningDataModule):
 
@@ -13,20 +14,20 @@ class DataModule(pl.LightningDataModule):
         self.is_data_stored_in_RAM = args.memory
 
     def setup(self):
-        # obtain and set training, test and evaluation data
-        # self.train = ...
-        # self.test = ...
-        pass
+        data_class = InMemoryTrainDataset if self.is_data_stored_in_RAM else TrainDataset
+
+        self.train = data_class(self.train_path, transform=ToTensor())
+
+        if self.val_path:
+            self.val = data_class(self.val_path, transform=ToTensor())
 
     def train_dataloader(self):
-        # transforms = ...
-        # return DataLoader(self.train, batch_size=self.batch_size)
-        pass
+        return DataLoader(self.train, self.batch_size, shuffle=True, num_workers=self.num_workers)
 
     def val_dataloader(self):
-        # tranforms = ...
-        # return DataLoader(self.val, batch_size=self.batch_size)
-        pass
+        assert self.val != None
+
+        return DataLoader(self.val, self.batch_size, num_workers=self.num_workers)
 
     @staticmethod
     def add_data_model_specific_args(parent_parser):

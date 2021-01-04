@@ -61,7 +61,9 @@ class RNN(core.LightningModule):
         # x, y = x.type(torch.cuda.LongTensor if device.type == 'cuda' else torch.LongTensor), y.to(device)
         output = self(x).transpose(1, 2)
         train_loss = F.cross_entropy(output, y)
+        
         self.log('train_loss', train_loss, prog_bar=True, on_step=batch_idx % 100 == 0, on_epoch=True)
+        
         return train_loss
 
     def validation_step(self, batch, batch_idx):
@@ -70,13 +72,11 @@ class RNN(core.LightningModule):
         output = self(x).transpose(1, 2)
         val_loss = F.cross_entropy(output, y)
 
-        self.log('val_loss', val_loss, prog_bar=True, on_step=False, on_epoch=True)
-        self.log('val_acc_step', self.accuracy(output, y))
+        self.accuracy(output, y)
+        self.log('val_loss', val_loss, on_step=False, on_epoch=True)
+        self.log('val_acc', self.accuracy, on_step=False, on_epoch=True)
         
         return val_loss
-
-    def validation_epoch_end(self, outs):
-        self.log('val_acc_epoch', self.accuracy.compute())
 
     def configure_optimizers(self):
         return optim.Adam(self.parameters(), lr=RNN.LR)
