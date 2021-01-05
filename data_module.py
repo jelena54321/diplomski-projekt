@@ -16,10 +16,10 @@ class DataModule(pl.LightningDataModule):
     def setup(self):
         data_class = InMemoryTrainDataset if self.is_data_stored_in_RAM else TrainDataset
 
-        self.train = data_class(self.train_path, transform=ToTensor())
+        self.train = data_class(self.train_path)
 
         if self.val_path:
-            self.val = data_class(self.val_path, transform=ToTensor())
+            self.val = data_class(self.val_path)
 
     def train_dataloader(self):
         return DataLoader(self.train, self.batch_size, shuffle=True, num_workers=self.num_workers)

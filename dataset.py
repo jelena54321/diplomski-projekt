@@ -1,16 +1,14 @@
 from torch.utils import data
 import os
 import h5py
-import torch
 import numpy as np
+from torch import _C as torch 
 
 class ToTensor:
 
-    # pylint: disable=E1101
     def __call__(self, sample):
         X, Y = sample    
         return torch.from_numpy(X), torch.from_numpy(Y)
-    # pylint: enable=E1101
 
 class TrainDataset(data.Dataset):
 
@@ -18,9 +16,9 @@ class TrainDataset(data.Dataset):
         self.filenames = get_file_names(path)
         self.transform = transform
         self.fs = None
-
         self.idx = {}
         self.size = 0
+        self.contigs = {}
         
         fs = [h5py.File(f, 'r', libver='latest', smwr=True) for f in self.filenames]
         for i, f in enumerate(fs):
@@ -36,6 +34,14 @@ class TrainDataset(data.Dataset):
                 for j in range(group_size):
                     self.idx[self.size + j] = (i, g, j)
                 self.size += group_size
+
+            end_group = f['contigs']
+            for k in end_group:
+                contig = str(k)
+                seq = end_group[k].attrs['seq']
+                length = end_group[k].attrs['len']
+
+                self.contigs[contig] = (seq, length)
 
         for f in fs:
             f.close()
