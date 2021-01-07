@@ -18,7 +18,6 @@ class TrainDataset(data.Dataset):
         self.fs = None
         self.idx = {}
         self.size = 0
-        self.contigs = {}
         
         fs = [h5py.File(f, 'r', libver='latest', smwr=True) for f in self.filenames]
         for i, f in enumerate(fs):
@@ -34,14 +33,6 @@ class TrainDataset(data.Dataset):
                 for j in range(group_size):
                     self.idx[self.size + j] = (i, g, j)
                 self.size += group_size
-
-            end_group = f['contigs']
-            for k in end_group:
-                contig = str(k)
-                seq = end_group[k].attrs['seq']
-                length = end_group[k].attrs['len']
-
-                self.contigs[contig] = (seq, length)
 
         for f in fs:
             f.close()
@@ -108,6 +99,7 @@ class InferenceDataset(data.Dataset):
         self.size = 0
         self.idx = {}
         self.f = None
+        self.contigs = {}
         
         with h5py.File(data_path, 'r') as f:
 
@@ -121,6 +113,13 @@ class InferenceDataset(data.Dataset):
                     self.idx[self.size + j] = (g, j)
 
                 self.size += group_size
+
+            end_group = f['contigs']
+            for k in end_group:
+                contig = str(k)
+                seq = end_group[k].attrs['seq']
+                length = end_group[k].attrs['len']
+                self.contigs[contig] = (seq, length)
 
     def __getitem__(self, idx):
         if not self.f:
