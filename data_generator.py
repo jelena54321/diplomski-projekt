@@ -13,7 +13,7 @@ class Region:
 
     Attributes
     ----------
-    name : region name, i.e. ID of the corresponding reference genome
+    name : region name, i.e. ID of the corresponding reference
     start : region start
     end : region end
     """
@@ -144,7 +144,7 @@ def generate_train_data(args):
     aligns = get_aligns(truth_genome_path, region)
     filtered_aligns = filter_aligns(aligns)
 
-    print(f'>> finished generating labels for {region.name}:{region.start}-{region.end} s:{len(filtered_aligns)}')
+    print(f'>> finished generating labels for {region.name}:{region.start}-{region.end}')
 
     if not filtered_aligns: 
         print(f'>> no alignments')
@@ -250,6 +250,7 @@ def filter_aligns(aligns, len_threshold=2.0, overlap_threshold=0.5, min_len=1000
     filtered_aligns : aligns that satisfy certain conditions.
     """
 
+    to_be_removed = set()
     for i, j in itertools.combinations(aligns, 2):
         first, second = order_by_ref_start(i, j)
 
@@ -267,16 +268,16 @@ def filter_aligns(aligns, len_threshold=2.0, overlap_threshold=0.5, min_len=1000
                 first.end = overlap_start
                 second.start = overlap_end
             else:
-                aligns.remove(shorter)
-                aligns.remove(longer)
+                to_be_removed.add(shorter)
+                to_be_removed.add(longer)
 
         else:
             if overlap_ratio >= overlap_threshold:
-                aligns.remove(shorter)
+                to_be_removed.add(shorter)
             else:
                 second.start = overlap_end
 
-    filtered_aligns = list(filter(lambda a: a.end - a.start >= min_len, aligns))
+    filtered_aligns = list(filter(lambda a: (a.end - a.start >= min_len) and a not in to_be_removed, aligns))
     filtered_aligns.sort(key=ALIGN_START_GETTER)
     return filtered_aligns
 
