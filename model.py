@@ -3,6 +3,7 @@ import pytorch_lightning.core as core
 import pytorch_lightning.metrics as metrics
 import torch.nn as nn
 import torch.optim as optim
+import torch
 
 class RNN(core.LightningModule):
     """
@@ -10,10 +11,8 @@ class RNN(core.LightningModule):
 
     Attributes
     ----------
-    input_size : int
-        input size
-    accuracy : `pytorch_lightning.metrics.Accuracy`
-        metrics object for calculating accuracy
+    input_size : input size
+    accuracy : metrics object for calculating accuracy
     """
 
     LR = 1e-4
@@ -26,14 +25,10 @@ class RNN(core.LightningModule):
         """
         Parameters
         ----------
-        input_size : int
-            input size
-        hidden_size : int
-            number of features in the hidden state in GRU
-        num_layers : int
-            number of recurrent layers in GRU
-        dropout : float
-            dropout probability
+        input_size : input size
+        hidden_size : number of features in the hidden state in GRU
+        num_layers : number of recurrent layers in GRU
+        dropout : dropout probability
         """
 
         super().__init__()
@@ -48,11 +43,11 @@ class RNN(core.LightningModule):
         self.linear_layer_2 = nn.Linear(100, 10)
         self.dropout_layer_3 = nn.Dropout(dropout)
         self.gru_layer = nn.GRU(
-            input_size, 
-            hidden_size, 
-            num_layers=num_layers, 
-            batch_first=True, 
-            bidirectional=True, 
+            input_size,
+            hidden_size,
+            num_layers=num_layers,
+            batch_first=True,
+            bidirectional=True,
             dropout=dropout
         )
         self.__init_gru()
@@ -64,33 +59,31 @@ class RNN(core.LightningModule):
 
         Parameters
         ----------
-        x : ...
-            input
+        x : input
 
         Returns
         -------
-        output : ...
-            neural network output
+        output : neural network output
         """
 
         x = self.embedding_layer(x)
-        
+
         x = self.dropout_layer_1(x)
-        
+
         x = x.permute((0, 2, 3, 1))
         x = self.linear_layer_1(x)
         x = F.relu(x)
-        
+
         x = self.dropout_layer_2(x)
-        
+
         x = self.linear_layer_2(x)
         x = F.relu(x)
-        
+
         x = self.dropout_layer_3(x)
-        
+
         x = x.reshape(-1, 90, self.in_size)
         x, _ = self.gru_layer(x)
-        
+
         return self.linear_layer_3(x)
 
     def training_step(self, batch, batch_idx):
@@ -99,25 +92,18 @@ class RNN(core.LightningModule):
 
         Parameters
         ----------
-        batch : ...
-            training batch
-        batch_idx : int
-            current batch index
+        batch : training batch
+        batch_idx : current batch index
 
         Returns
         -------
-        train_loss : flot
-            train_loss for this training step
+        train_loss : train_loss for this training step
         """
 
         x, y = batch
-        # x, y = x.type(torch.cuda.LongTensor if device.type == 'cuda' else torch.LongTensor), y.to(device)
+        x, y = x.type(torch.cuda.LongTensor if torch.cuda.is_available() else torch.LongTensor), y
         output = self(x).transpose(1, 2)
-        train_loss = F.cross_entropy(output, y)
-        
-        self.log('train_loss', train_loss, prog_bar=True, on_step=batch_idx % 100 == 0, on_epoch=True)
-        
-        return train_loss
+        return F.cross_entropy(output, y)
 
     def validation_step(self, batch, batch_idx):
         """
@@ -125,25 +111,22 @@ class RNN(core.LightningModule):
 
         Parameters
         ----------
-        batch : ...
-            validation batch
-        batch_idx : int
-            current batch index
+        batch : validation batch
+        batch_idx : current batch index
 
         Returns
         -------
-        val_loss : flot
-            train_loss for this validation step
+        val_loss : train_loss for this validation step
         """
         x, y = batch
-        # x, y = x.type(torch.cuda.LongTensor if device.type == 'cuda' else torch.LongTensor), y.to(device)
+        x, y = x.type(torch.cuda.LongTensor if torch.cuda.is_available() else torch.LongTensor), y
         output = self(x).transpose(1, 2)
         val_loss = F.cross_entropy(output, y)
 
         self.accuracy(output, y)
         self.log('val_loss', val_loss, on_step=False, on_epoch=True)
         self.log('val_acc', self.accuracy, on_step=False, on_epoch=True)
-        
+
         return val_loss
 
     def configure_optimizers(self):
@@ -152,8 +135,7 @@ class RNN(core.LightningModule):
 
         Returns
         -------
-        optimizer : `torch.optim.Optimizer`
-            a subclass of the base optimizer
+        optimizer : a subclass of the base optimizer
         """
         return optim.Adam(self.parameters(), lr=RNN.LR)
 

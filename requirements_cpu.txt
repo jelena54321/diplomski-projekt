@@ -1,0 +1,5 @@
+biopython==1.78
+h5py==3.1.0
+numpy==1.19.5
+pysam==0.16.0.1
+six==1.15.0

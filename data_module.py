@@ -1,7 +1,8 @@
 import pytorch_lightning as pl
 import argparse
 from torch.utils.data import DataLoader
-from dataset import InMemoryTrainDataset, TrainDataset, ToTensor
+from dataset import InMemoryTrainDataset, TrainDataset
+import torch
 
 class DataModule(pl.LightningDataModule):
     """
@@ -10,24 +11,18 @@ class DataModule(pl.LightningDataModule):
 
     Attributes
     ----------
-    train_path : str
-        file path to data used for training
-    val_path : str
-        file path to data used for validation
-    batch_size : int
-        size of a single batch
-    num_workers : int
-        number of subprocesses used for data loading
-    is_data_stored_in_RAM : bool
-        flag that indicates whether all data is immediately loaded and stored in RAM
+    train_path : file path to data used for training
+    val_path : file path to data used for validation
+    batch_size : size of a single batch
+    num_workers : number of subprocesses used for data loading
+    is_data_stored_in_RAM : flag that indicates whether all data is immediately loaded and stored in RAM
     """
 
     def __init__(self, args):
         """
         Parameters
         ----------
-        args : `argparse.Namespace`
-            an object holding all required arguments
+        args : an object holding all required arguments
         """
 
         super().__init__()
@@ -37,12 +32,15 @@ class DataModule(pl.LightningDataModule):
         self.num_workers = args.num_workers
         self.is_data_stored_in_RAM = args.memory
 
-    def setup(self):
+        self.train = None
+        self.val = None
+
+    def setup(self, stage=None):
         """
-        Sets up training and validation (if provided) dataset according to 
+        Sets up training and validation (if provided) dataset according to
         flag `is_data_stored_in_RAM`.
         """
-        
+
         data_class = InMemoryTrainDataset if self.is_data_stored_in_RAM else TrainDataset
 
         self.train = data_class(self.train_path)
@@ -56,8 +54,7 @@ class DataModule(pl.LightningDataModule):
 
         Returns
         -------
-        dataloader : `DataLoader`
-            training data
+        dataloader : training data
         """
 
         return DataLoader(self.train, self.batch_size, shuffle=True, num_workers=self.num_workers)
@@ -68,17 +65,15 @@ class DataModule(pl.LightningDataModule):
 
         Returns
         -------
-        dataloader : `torch.utils.data.DataLoader`
-            validation data
+        dataloader : validation data
 
         Raises
         ------
         AssertionError
             If validation is not required, i.e. if val_path is not provided.
         """
-        
-        assert self.val != None
-        return DataLoader(self.val, self.batch_size, num_workers=self.num_workers)
+
+        return DataLoader(self.val, self.batch_size, num_workers=self.num_workers) if self.val else None
 
     @staticmethod
     def add_data_model_specific_args(parent_parser):
@@ -87,17 +82,15 @@ class DataModule(pl.LightningDataModule):
 
         Parameters
         ----------
-        parent_parser : `argparse.ArgumentParser`
-            parser used for argument configuration
+        parent_parser : parser used for argument configuration
 
         Returns
         -------
-        parser : `argparse.ArgumentParser`
-            configured parser
+        parser : configured parser
         """
-        
+
         parser = argparse.ArgumentParser(parents=[parent_parser], add_help=False)
-        parser.add_argument('train_path', type=str)
+        parser.add_argument('--train_path', type=str)
         parser.add_argument('--val_path', type=str, default=None)
         parser.add_argument('--memory', type=str, default=False)
         parser.add_argument('--batch_size', type=int, default=128)

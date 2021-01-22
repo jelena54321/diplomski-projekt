@@ -21,21 +21,18 @@ class Coder:
 
         Parameters
         ----------
-        value : char
-            element of the alphabet
+        value : element of the alphabet
 
         Returns
         -------
-        encoding : int
-            encoding of the given parameter
+        encoding : encoding of the given parameter
 
         Raises
         ------
         AssertionError
             If provided value is not the element of the alphabet.
         """
-        
-        assert value in Coder.ALPHABET
+
         return Coder.encodings[value]
 
     @staticmethod
@@ -45,19 +42,16 @@ class Coder:
 
         Parameters
         ----------
-        value : int
-            encoding of the alphabet element
+        value : encoding of the alphabet element
 
         Returns
         -------
-        decoding : char
-            the alphabet element corresponding to the given parameter
+        decoding : the alphabet element corresponding to the given parameter
 
         Raises
         ------
         AssertionError
             If provided value is not the encoding of the alphabet element.
         """
-        
-        assert value < len(Coder.ALPHABET)
+
         return Coder.decodings[value]
