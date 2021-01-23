@@ -1,6 +1,6 @@
-# Project: Consensus polisher implementation using *Pythorch-Lightning* library
+# Project: Consensus polisher implementation using *PyTorch-Lightning* library
 
-This consensus polisher is based on the already existing model [Roko](https://github.com/lbcb-sci/roko) with the exception of using *Pytorch-Lightning* library for a more scientific approach.
+This consensus polisher is based on the already existing model [Roko](https://github.com/lbcb-sci/roko) with the exception of using *PyTorch-Lightning* library for a more scientific approach.
 
 ## Installation
 
