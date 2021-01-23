@@ -74,7 +74,7 @@ python train.py [options ...] --train_path <train_data> --out_path <model_output
         number of threads used for loading data
 ```
 
-### 3. Make inference
+### 4. Make inference
 ```
 python inference.py [options ...] --model_path <model> --data_path <inference_data> --out_path<output>
 
