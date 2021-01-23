@@ -92,7 +92,7 @@ class DataModule(pl.LightningDataModule):
         parser = argparse.ArgumentParser(parents=[parent_parser], add_help=False)
         parser.add_argument('--train_path', type=str)
         parser.add_argument('--val_path', type=str, default=None)
-        parser.add_argument('--memory', type=str, default=False)
+        parser.add_argument('--memory', type=bool, default=False)
         parser.add_argument('--batch_size', type=int, default=128)
         parser.add_argument('--num_workers', type=int, default=0)
         return parser
